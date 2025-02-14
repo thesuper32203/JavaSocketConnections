@@ -9,49 +9,51 @@ import java.net.Socket;
 public class Server {
 
     //Initialize socket and input
-    private Socket s = null;
-    private ServerSocket ss = null;
+    private Socket socket = null;
+    private ServerSocket server = null;
     private DataInputStream in = null;
 
     //Constructor with port
-    public Server(int port){
-
+    public Server(int port) throws IOException{
         //Starts server and waits for a connection
         try {
-            ss = new ServerSocket(port);
+            server = new ServerSocket(port);
             System.out.println("server started");
 
             System.out.println("Waiting for a client...");
-
-            s = ss.accept();
-            System.out.println("Client accepted");
-
-            //Takes input from the client socket
-            in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
-
-            String m = "";
-
-            //Reads message from client until "Over" is sent
-            while(!m.equalsIgnoreCase("over")){
-                try{
-                    m = in.readUTF();
-                    System.out.println(m);
-                }catch(IOException i){
-                    System.out.println(i);
-                }
-            }
-            System.out.println("Closing connection");
-
-            //close connection
-            s.close();
-            in.close();
-
-        }catch (IOException i){
-            System.out.println(i);
+            while (true) iniConnections();
         }
-    }
+            catch (IOException i){
+                System.out.println(i);
+            }
+        }
 
-    public static void main(String[] args) {
+
+
+    public void iniConnections() throws IOException{
+
+        Socket clientSocket = server.accept();
+
+        if(clientSocket.isConnected())
+            new Thread(()->{
+                System.out.println("New client");
+                ConnectedClient client = null;
+                try {
+                    client = new ConnectedClient(clientSocket);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                client.readMessages();
+                client.close();
+                System.out.println("Client disconnected");
+            }).start();
+
+    }
+    public static void main(String[] args) throws IOException {
         new Server(8080);
     }
-}
+    }
+
+
+
+

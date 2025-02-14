@@ -9,9 +9,35 @@ public class ConnectedClient {
     private DataInputStream in;
 
     public ConnectedClient(Socket clientSocket) throws IOException {
+
         this.clientSocket = clientSocket;
-        this.in = new DataInputStream(new BufferedInputStream(clientSocket.getInputStream()));
+        try {
+            this.in = new DataInputStream(new BufferedInputStream(clientSocket.getInputStream()));
+        } catch (IOException e) {
+            System.out.println(e.toString());
+        }
 
+    }
 
+    public void readMessages(){
+
+        String line = "";
+        while (!line.equalsIgnoreCase("over")){
+            try {
+                line = in.readUTF();
+            } catch (NullPointerException | IOException e) {
+                System.out.println(e.toString());
+            }
+            System.out.println(line);
+        }
+    }
+
+    public void close()  {
+        try {
+            clientSocket.close();
+            in.close();
+        } catch (IOException e) {
+            System.out.println(e.toString());
+        }
     }
 }
